@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+const mongoose = require("mongoose");
 
 const userSchema = new mongoose.Schema({
     fullname: {
@@ -26,9 +26,13 @@ const userSchema = new mongoose.Schema({
         type:String,
         required:true,
         default:""
+    },
+    isVerfied:{
+        type:Boolean,
+        default:false
     }
 });
 
 // Export the model
 const User = mongoose.model("User", userSchema);
-export default User;
+module.exports = User;

@@ -31,35 +31,51 @@ UserRouter.post(
             return res.status(400).json({ error: 'Please enter all required fields' });
         }
 
-        if (!req.files || !req.files.profilepdf) {
-            return res.status(400).json({ error: 'Profile PDF is required' });
+        // Validate that the profile PDF exists
+        if (!req.files.profilepdf) {
+            return res.status(400).json({ error: 'Profile PDf is required' });
+        }
+
+        // Validate that the profile photo exists
+        if (!req.files.profilepic) {
+            return res.status(400).json({ error: 'Profile photo is required' });
         }
 
         try {
-            // Upload PDF to Cloudinary
+            // Check if the profile PDF is a valid PDF file
             const pdfFile = req.files.profilepdf[0];
+            if (pdfFile.mimetype !== 'application/pdf') {
+                return res.status(400).json({ error: 'Invalid file format for profile PDF. Only PDFs are allowed.' });
+            }
+
+            // Upload PDF to Cloudinary
             const pdfUpload = await cloudinary.uploader.upload(pdfFile.path, {
                 resource_type: 'raw',
-                folder: 'uploads/docs',
-            });
-            fs.unlinkSync(pdfFile.path); // remove temp file
+                folder: 'uploads/pdf',
+                public_id: pdfFile.originalname.replace(/\.[^/.]+$/, ""),
+                format: 'pdf'
+              });
+              
+            fs.unlinkSync(pdfFile.path); // Remove temp PDF file
 
-            // Upload profile pic (optional)
-            let profilepicURL = '';
-            if (req.files.profilepic && req.files.profilepic[0]) {
-                const imageFile = req.files.profilepic[0];
-                const imageUpload = await cloudinary.uploader.upload(imageFile.path, {
-                    folder: 'uploads/images',
-                });
-                profilepicURL = imageUpload.secure_url;
-                fs.unlinkSync(imageFile.path); // remove temp image
+            // Check if the profile photo is a valid image file
+            const imageFile = req.files.profilepic[0];
+            if (!imageFile.mimetype.startsWith('image/')) {
+                return res.status(400).json({ error: 'Invalid file format for profile photo. Only image files are allowed.' });
             }
+
+            // Upload profile pic to Cloudinary
+            const imageUpload = await cloudinary.uploader.upload(imageFile.path, {
+                folder: 'uploads/images', // Folder for images
+            });
+            const profilepicURL = imageUpload.secure_url;
+            fs.unlinkSync(imageFile.path); // Remove temp image file
 
             // Hash password
             const salt = await bcrypt.genSalt(10);
             const hashedPassword = await bcrypt.hash(password, salt);
 
-            // Save user
+            // Save user in the database
             const newUser = new User({
                 fullname,
                 email,
@@ -89,26 +105,22 @@ UserRouter.post('/login', async (req, res) => {
     }
 
     try {
-        // Find user by fullname instead of email
         const user = await User.findOne({ fullname });
         if (!user) {
             return res.status(400).json({ error: 'User not found' });
         }
 
-        // Compare passwords
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
             return res.status(401).json({ error: 'Invalid credentials' });
         }
 
-        // Successful login
         res.status(200).json({ message: 'Login successful', user });
     } catch (error) {
         console.error('Login error:', error);
         res.status(500).json({ error: 'Server error during login' });
     }
 });
-
 
 UserRouter.get('/getall', async (req, res) => {
     try {

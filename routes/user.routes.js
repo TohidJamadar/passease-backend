@@ -97,6 +97,7 @@ UserRouter.post(
     }
 );
 
+// Login endpoint for users
 UserRouter.post('/login', async (req, res) => {
     const { fullname, password } = req.body;
 
@@ -122,19 +123,7 @@ UserRouter.post('/login', async (req, res) => {
     }
 });
 
-UserRouter.get('/getall', async (req, res) => {
-    try {
-        const users = await User.find();
-        res.status(200).json(users);
-    } catch (error) {
-        console.error('Error fetching users:', error);
-        res.status(500).json({ error: 'Server error while fetching users' });
-    }
-});
-
-
-// Add this below your /getall route
-
+// Scan QR code endpoint
 UserRouter.post('/scan', async (req, res) => {
     const { fullname } = req.body;
 
@@ -149,23 +138,31 @@ UserRouter.post('/scan', async (req, res) => {
             return res.status(404).json({ error: 'User not found' });
         }
 
-        if (user.scanCount === 0) {
-            return res.status(403).json({ error: 'Scan limit reached' });
+        const today = new Date().toDateString();
+        const lastScan = new Date(user.lastScanDate).toDateString();
+
+        // If it's a new day, reset scanCount
+        if (today !== lastScan) {
+            user.scanCount = 2; // reset to 2 scans per day
+            user.lastScanDate = new Date(); // update last scan date to today
         }
 
+        if (user.scanCount <= 0) {
+            return res.status(403).json({ error: 'Scan limit reached for today' });
+        }
+
+        // Deduct scan count after a successful scan
         user.scanCount -= 1;
         await user.save();
 
         res.status(200).json({
-            message: 'Scan allowed',
-            scanCount: user.scanCount,
-            scanLimit: 2
+            message: 'Scan successful',
+            remainingScans: user.scanCount
         });
     } catch (error) {
         console.error('Scan error:', error);
-        res.status(500).json({ error: 'Server error during scan check', scanLimit: 2 });
+        res.status(500).json({ error: 'Server error during scan check' });
     }
 });
-
 
 module.exports = UserRouter;

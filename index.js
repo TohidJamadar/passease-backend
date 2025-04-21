@@ -5,7 +5,11 @@ const cloudinary = require('cloudinary').v2;
 const UserRouter = require('./routes/user.routes');
 const connectDB = require('./config/db');
 const AdminRouter = require('./routes/admin.routes');
+const cors = require('cors');
 
+cors({
+  origin: '*',
+});
 // Load environment variables from .env file
 dotenv.config();
 connectDB()

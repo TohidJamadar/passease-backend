@@ -30,7 +30,12 @@ const userSchema = new mongoose.Schema({
     isVerfied:{
         type:Boolean,
         default:false
-    }
+    },
+    scanCount:{
+        type:Number,
+        default:2
+    },
+
 });
 
 // Export the model

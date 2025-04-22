@@ -7,9 +7,29 @@ const userSchema = new mongoose.Schema({
     route: { type: String },
     profilepdf: { type: String },
     profilepic: { type: String },
-    isVerified: { type: Boolean, default: false },
-    scanCount: { type: Number, default: 2 }, // starts with 2 scans allowed per day
-    lastScanDate: { type: Date, default: new Date() } // sets it to today when user is created
+    
+    // NEW FIELDS
+
+    isVerfied:{
+        type:Boolean,
+        default:false
+    },
+    scanCount: {
+        type: Number,
+        default: 2 // starts with 2 scans allowed per day
+    },
+    lastScanDate: {
+        type: Date,
+        default: new Date() // sets it to today when user is created
+    },
+    daysLeft: {
+        type: Number,
+        default: 30// starts with 2 scans allowed per day
+    },
+    paid:{
+        type: Boolean,
+        default: false
+    }
 });
 
 module.exports = mongoose.model('User', userSchema);

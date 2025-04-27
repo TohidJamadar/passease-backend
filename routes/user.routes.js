@@ -164,6 +164,8 @@ UserRouter.post('/status', async (req, res) => {
             scanCount: user.scanCount,
             route: user.route,
             isVerified: user.isVerified,
+            msg: user.rejectMessage,
+            Id: user._id,
         });
          
     } catch (error) {
@@ -191,6 +193,25 @@ UserRouter.post('/paid', async (req, res) => {
         res.status(500).json({ error: 'Server error during payment update' });
     }
 });
+
+
+// DELETE /delete/:id
+// DELETE /delete/:id
+UserRouter.post('/delete', async (req, res) => {
+    const { fullname } = req.body;
+
+    try {
+        const user = await User.findOneAndDelete({ fullname });
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+        res.status(200).json({ message: 'User deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting user:', error);
+        res.status(500).json({ error: 'Server error while deleting user' });
+    }
+});
+
 
 
 module.exports = UserRouter;

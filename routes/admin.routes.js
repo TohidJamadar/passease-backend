@@ -28,10 +28,28 @@ const VerifiedByAdmin = async (req, res) => {
     }
 };
 
-
-
 AdminRouter.post('/verify', VerifiedByAdmin);
 
-
+AdminRouter.post('/reject', async (req, res) => {
+    try {
+      const { fullname, rejectMessage } = req.body;
+  
+      const user = await User.findOne({ fullname });
+  
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+  
+      user.isVerified = false;
+      user.rejectMessage = rejectMessage;
+  
+      await user.save();
+  
+      res.status(200).json({ message: 'User rejected with message' });
+    } catch (error) {
+      console.error('Reject failed:', error);
+      res.status(500).json({ error: 'Server error' });
+    }
+});
 
 module.exports = AdminRouter;

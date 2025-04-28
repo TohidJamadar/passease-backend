@@ -2,7 +2,7 @@ const cron = require('node-cron');
 const User = require('../models/User.model');
 
 // Runs every day at midnight (00:00)
-cron.schedule('*/2 * * * *', async () => {
+cron.schedule('0 0 * * *', async () => {
   try {
     const users = await User.find();
 

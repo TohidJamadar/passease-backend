@@ -103,7 +103,7 @@ UserRouter.post('/login', async (req, res) => {
 // GET /getall
 UserRouter.get('/getall', async (req, res) => {
     try {
-        const users = await User.find();
+        const users = await User.find({ isVerified: false });  // Add condition to filter verified users
         res.status(200).json(users);
     } catch (error) {
         console.error('Fetch error:', error);
